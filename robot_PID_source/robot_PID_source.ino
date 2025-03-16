@@ -1,26 +1,14 @@
 /* =======================================================================================================
 
-    Algoritmo PID Básico Aplicado a Robôs Móveis
-
-    Robô move-se para frente medindo a distância de um possível obstáculo.
-
-    Sendo a distância inferior a 20cm (valor arbitrado), o robô move-se para trás até o ponto de 20cm.
-
-    Chave p_on seleciona entre modo PID e modo simples "On Off"
+    ********************************Algoritmo PID Básico Aplicado a Robôs Móveis********************************
+    - Robô move-se para frente medindo a distância de um possível obstáculo.
+    - Sendo a distância inferior a 20cm (valor arbitrado), o robô move-se para trás até o ponto de 20cm.
+    - Chave p_on seleciona entre modo PID e modo simples "On Off"
 
     Compilador: Arduino IDE 1.8.4
 
-
-    Autor: Eng. Wagner Rambo
-    Data: Março de 2018
-
-    www.wrkits.com.br | www.toroid.com.br | www.facebook.com/wrkits | www.youtube.com/canalwrkits
-
-
 ======================================================================================================= */
 
-
-// =======================================================================================================
 // --- Mapeamento de Hardware ---
 #define echo 2   //pino de echo do sensor ultrassônico HCSR04
 #define trig 3   //pino de trigger do sensor ultrassônico HCSR04
@@ -32,8 +20,6 @@
 #define ledB 19  //LED azul alto brilho
 #define p_on 14  //chave para seleção de modos (PID e normal)
 
-
-// =======================================================================================================
 // --- Configurações Iniciais ---
 void onOff_control(float measure);  //Função para algoritmo de controle simples (on off)
 void pid_control(float measure);    //Função para algorimo PID
@@ -42,16 +28,11 @@ void robot_back();                  //Função para mover robô para trás
 float measureDistance();            //Função para medir, calcular e retornar a distância em cm
 void trigPulse();                   //Função que gera o pulso de trigger de 10µs
 
-
-// =======================================================================================================
 // --- Variáveis Globais ---
 float dist_cm;  //Armazena a distância em centímetros entre o robô e o obstáculo
 
-
-// =======================================================================================================
 // --- Configurações Iniciais ---
 void setup() {
-
   pinMode(dir1, OUTPUT);        //saída para controle de direção do motor 1
   pinMode(pwm1, OUTPUT);        //saída para pwm do motor 1
   pinMode(pwm2, OUTPUT);        //saída para pwm do motor 2
@@ -62,7 +43,6 @@ void setup() {
   pinMode(echo, INPUT);         //entrada para o pulso de echo
   pinMode(p_on, INPUT_PULLUP);  //entrada para chave de seleção de modos
 
-
   digitalWrite(trig, LOW);  //pino de trigger inicia em low
   digitalWrite(ledR, LOW);  //led vermelho inicia desligado
   digitalWrite(ledB, LOW);  //led azul inicia desligado
@@ -70,60 +50,37 @@ void setup() {
   digitalWrite(pwm1, LOW);  //pwm1 inicia em 0
   digitalWrite(pwm2, LOW);  //pwm2 inicia em 0
   digitalWrite(dir2, LOW);  //dir2 inicia em LOW
-
 }  //end setup
 
-
-// =======================================================================================================
 // --- Loop Infinito ---
 void loop() {
-
-  dist_cm = measureDistance();  //mede a distância e armazena em dist_cm
-
+  dist_cm = measureDistance();                  //mede a distância e armazena em dist_cm
   if (digitalRead(p_on)) pid_control(dist_cm);  //controle PID, se chave p_on acionada
-
-  else onOff_control(dist_cm);  //senão, controle normal
-
-
-  delay(65);  //atualização das leituras do sensor (sugerida pelo fabricante)
-
-
+  else onOff_control(dist_cm);                  //senão, controle normal
+  delay(65);                                    //atualização das leituras do sensor (sugerida pelo fabricante)
 }  //end loop
 
-
-// =======================================================================================================
 // --- Desenvolvimento das Funções ---
 
-
-// =======================================================================================================
 // --- Move Robô para Frente ---
 // Desliga os relés da ponte H para ambos os motores
-//
 void robot_ahead()  //Função para mover robô para frente
 {
   digitalWrite(dir1, LOW);
   digitalWrite(dir2, LOW);
-
 }  //end robot_ahead
 
-
-// =======================================================================================================
 // --- Move Robô para Trás ---
 // Aciona os relés da ponte H para ambos os motores
-//
 void robot_back()  //Função para mover robô para trás
 {
   digitalWrite(dir1, HIGH);
   digitalWrite(dir2, HIGH);
-
 }  //end robot_ahead
 
-
-// =======================================================================================================
 // --- Algoritmo de controle simples (on off) ---
 // Se distância inferior a 20cm, move robô para trás com pwm máximo. Senão, move robô para frente
 // com pwm máximo.
-//
 void onOff_control(float measure)  //Função para algoritmo de controle simples (on off)
 {
   digitalWrite(ledR, HIGH);  //liga led vermelho
@@ -142,19 +99,14 @@ void onOff_control(float measure)  //Função para algoritmo de controle simples
     analogWrite(pwm1, 255);  //pwm1 no máximo
     analogWrite(pwm2, 255);  //pwm2 no máximo
   }                          //end else
-
 }  //end onOff_control
 
-
-// =======================================================================================================
 // --- Algoritmo Proporcional Integral Derivativo (P.I.D.) ---
 // Calcula erro na medida do sensor, comparando com setpoint (20cm)
 // Reduz velocidade dos motores de forma sutil até atingir 20cm
 // Movimenta robô para frente (se distância superior ou igual a 20) ou para trás (se distância inferior a 20)
-//
 void pid_control(float measure)  //Função para algorimo PID
 {
-
   float error_meas,      //armazena o erro
     kp = 1.0,            //constante kp
     ki = 0.02,           //constante ki
@@ -181,7 +133,6 @@ void pid_control(float measure)  //Função para algorimo PID
 
   PID = proportional + integral + derivative;  //calcula PID
 
-
   if (PID < 0)                       //PID menor que zero?
   {                                  //sim
     PID = map(PID, 0, -20, 0, 255);  //normaliza para PWM de 8 bits
@@ -199,22 +150,14 @@ void pid_control(float measure)  //Função para algorimo PID
 
   analogWrite(pwm1, PID);  //controla PWM de acordo com o PID (motor 1)
   analogWrite(pwm2, PID);  //controla PWM de acordo com o PID (motor 2)
-
-
 }  //end pid_control
 
-
-// =======================================================================================================
 // --- Mede pulso de echo e calcula distância medida pelo sensor ---
 // Utiliza função pulseIn da IDE do Arduino e realiza o cálculo da distância em cm
-//
 float measureDistance()  //Função que retorna a distância em centímetros
 {
-
-  float pulse;  //Armazena o valor de tempo em µs que o pino echo fica em nível alto
-
-  trigPulse();  //Envia pulso de 10µs para o pino de trigger do sensor
-
+  float pulse;                  //Armazena o valor de tempo em µs que o pino echo fica em nível alto
+  trigPulse();                  //Envia pulso de 10µs para o pino de trigger do sensor
   pulse = pulseIn(echo, HIGH);  //Mede o tempo em que echo fica em nível alto e armazena em pulse
 
   /*
@@ -238,20 +181,13 @@ float measureDistance()  //Função que retorna a distância em centímetros
   */
 
   return (pulse / 58.82);  //Calcula distância em centímetros e retorna o valor
-
-
 }  //end measureDistante
 
-
-// =======================================================================================================
 // --- Gera o pulso de trigger para o acionamento do sinal de ultrassom ---
 // Pulso de 10µs , conforme especificação do fabricante (vide datashet HC-SR04)
-//
 void trigPulse()  //Função para gerar o pulso de trigger para o sensor HC-SR04
 {
-
   digitalWrite(trig, HIGH);  //Saída de trigger em nível alto
   delayMicroseconds(10);     //Por 10µs ...
   digitalWrite(trig, LOW);   //Saída de trigger volta a nível baixo
-
 }  //end trigPulse
